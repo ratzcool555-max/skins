@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Retro Game Skin Uploader</title>
+    <style>
+        body { background: #111; color: #0f0; font-family: monospace; text-align: center; padding-top: 50px; }
+        .box { border: 2px solid #0f0; padding: 20px; display: inline-block; background: #222; }
+        input, button { margin: 10px; padding: 10px; background: #000; color: #0f0; border: 1px solid #0f0; font-family: monospace; }
+        button { cursor: pointer; font-weight: bold; }
+        button:hover { background: #0f0; color: #000; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>SKIN UPLOADER</h2>
+        <input type="text" id="username" placeholder="Type In-Game Username"><br>
+        <input type="file" id="skinFile" accept=".png"><br>
+        <button onclick="uploadSkin()">UPLOAD SKIN</button>
+        <p id="status"></p>
+    </div>
+
+<script>
+async function uploadSkin() {
+    const user = document.getElementById('username').value.trim().toLowerCase();
+    const fileInput = document.getElementById('skinFile');
+    const status = document.getElementById('status');
+
+    if (!user || !fileInput.files[0]) {
+        status.innerText = "Type a username AND pick a PNG file!";
+        return;
+    }
+
+    status.innerText = "Uploading...";
+    const reader = new FileReader();
+
+    reader.onload = async function() {
+        const base64Content = reader.result.split(',')[1];
+        
+        // Target your GitHub raw repo directly
+        const repo = "ratzcool555-max/skins";
+        const path = `${user}.png`;
+        const url = `https://api.github.com/repos/${repo}/contents/${path}`;
+
+        // Uses GitHub's public API to upload
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: `Uploaded skin for ${user}`,
+                content: base64Content
+            })
+        });
+
+        if (response.ok || response.status === 422) {
+            status.innerText = `SUCCESS! In Unity, use username: ${user}`;
+        } else {
+            status.innerText = "Upload failed. Make sure the file is a valid PNG!";
+        }
+    };
+
+    reader.readAsDataURL(fileInput.files[0]);
+}
+</script>
+</body>
+</html>
